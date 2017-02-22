@@ -130,7 +130,7 @@ def grabRecipeDetails(url):
 		pass
 
 	ordered = OrderedDict([("title", title), ("description", description), ("image", imgFilename), ("sourceUrl", url), ("chefName", chefName), ("preparationTime", prepTime), ("cookingTime", cookTime), ("serves", serves), ("ingredientsDesc", ingredientsDescription), ("ingredients", ingredientsText), ("method", methodText)])
-	jsonFile.write(json.dumps(ordered, sort_keys=False, indent=4, separators=(',', ': ')) + '\n')
+	jsonFile.write(json.dumps(ordered, sort_keys=False, indent=4, separators=(',', ': ')) + ',\n')
 	# dictXml = dicttoxml.dicttoxml(ordered, custom_root='recipe')
 	# xmlString = xml.dom.minidom.parseString(dictXml)
 	# prettyXml = xmlString.toprettyxml()
