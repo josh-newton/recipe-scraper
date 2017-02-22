@@ -7,11 +7,24 @@ import json
 from collections import OrderedDict
 import dicttoxml
 import xml.dom.minidom
+import glob
 
 browser = mechanize.Browser()
 browser.set_handle_robots(False)
+
+# clear files before opening
+open(os.getcwd() + '/recipes.json', 'w').close()
+open(os.getcwd() + '/recipes.xml', 'w').close()
 jsonFile = open(os.getcwd() + '/recipes.json', 'a')
 xmlFile = open(os.getcwd() + '/recipes.xml', 'a')
+
+# create images directory/remove images contents at start
+if os.path.exists(os.getcwd() + '/images/'):
+	filelist = glob.glob(os.getcwd() + "/images/*")
+	for f in filelist:
+		os.remove(f)
+else:
+    os.makedirs(os.getcwd() + '/images/')
 
 baseUrl = 'https://www.bbc.co.uk/food/recipes/search?page='
 cuisines = '&cuisines[0]=african&cuisines[1]=american&cuisines[2]=british&cuisines[3]=caribbean&cuisines[4]=chinese&cuisines[5]=east_european&cuisines[6]=french&cuisines[7]=greek&cuisines[8]=indian&cuisines[9]=irish&cuisines[10]=italian&cuisines[11]=japanese&cuisines[12]=mexican&cuisines[13]=nordic&cuisines[14]=north_african&cuisines[15]=portuguese&cuisines[16]=south_american&cuisines[17]=spanish&cuisines[18]=thai_and_south-east_asian&cuisines[19]=turkish_and_middle_eastern'
@@ -87,8 +100,8 @@ def grabRecipeDetails(url):
 					ingredientsText.append(ingredient.select('a')[0].text)
 			else:
 				ingredientsText.append(ingredient.text)
-		ingredientsText = set(ingredientsText)
-		print ingredientsText
+		# Remove duplicates
+		ingredientsText = list(set(ingredientsText))
 	except:
 		pass
 
@@ -132,7 +145,7 @@ def grabRecipeDetails(url):
 		pass
 
 	ordered = OrderedDict([("title", title), ("description", description), ("image", imgFilename), ("sourceUrl", url), ("chefName", chefName), ("preparationTime", prepTime), ("cookingTime", cookTime), ("serves", serves), ("ingredientsDesc", ingredientsDescription), ("ingredients", ingredientsText), ("method", methodText)])
-	# jsonFile.write(json.dumps(ordered, sort_keys=False, indent=4, separators=(',', ': ')) + ',\n')
+	jsonFile.write(json.dumps(ordered, sort_keys=False, indent=4, separators=(',', ': ')) + ',\n')
 	# dictXml = dicttoxml.dicttoxml(ordered, custom_root='recipe')
 	# xmlString = xml.dom.minidom.parseString(dictXml)
 	# prettyXml = xmlString.toprettyxml()
