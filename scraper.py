@@ -79,7 +79,7 @@ diets = [
 
 selectors = {
 	'link': 'div#article-list h3 a',
-	'title': 'h1.content-title__text'
+	'title': 'h1.content-title__text',
 	'image': 'img.recipe-media__image',
 	'description': 'p.recipe-description__text',
 	'method': 'ol.recipe-method__list li p',
@@ -206,11 +206,12 @@ def grabRecipeDetails(url):
 
 	ordered = OrderedDict([("title", title), ("description", description), ("image", imgFilename), ("sourceUrl", url), ("chefName", chefName), ("preparationTime", prepTime), ("cookingTime", cookTime), ("serves", serves), ("ingredientsDesc", ingredientsDescription), ("ingredients", ingredientsText), ("method", methodText)])
 	jsonFile.write(json.dumps(ordered, sort_keys=False, indent=4, separators=(',', ': ')) + ',\n')
-	# dictXml = dicttoxml.dicttoxml(ordered, custom_root='recipe')
-	# xmlString = xml.dom.minidom.parseString(dictXml)
-	# prettyXml = xmlString.toprettyxml()
-	# print prettyXml
-	# xmlFile.write(a)
+	dictXml = dicttoxml.dicttoxml(ordered, custom_root='recipe', attr_type=False)
+	xmlString = xml.dom.minidom.parseString(dictXml)
+	prettyXml = xmlString.toprettyxml()
+	# Fix utf-8 encoding error, remove xml verion tag
+	prettyXml = prettyXml.encode('utf-8')[23:]
+	xmlFile.write(prettyXml)
 	print ''
 
 def main():
@@ -218,5 +219,18 @@ def main():
 	loopOverPages()
 	jsonFile.write(']')
 
+	# Loop over all cuisines
+		# Go to a cuisine page
+		# Get recipe links from page
+			# Go to recipe page and grab details
+			# Add recipe details to json
+	# Loop over all course pages
+		# Get recipe title, match to an already downloaded recipe, add course to details
+		# If no recipe match, go to recipe page and grab details
+	# Loop over all diet pages
+		# Get recipe title, match to an already downloaded recipe, add course to details
+		# If no recipe match, go to recipe page and grab details
+
+	# Read json and rewrite to xml as second format
 if __name__ == '__main__':
 	main()
