@@ -86,79 +86,82 @@ selectors = {
 }
 
 def saveRecipeDetails(url, cuisine):
-	page = browser.open(url)
-	html = page.read()
-	soup = BeautifulSoup(html, 'lxml')
-
-	title = soup.select(selectors['title'])[0].text
-	print 'Grabbing recipe: ' + title
-
 	try:
-		# Strip removes newline and whitespace characters
-		description = soup.select(selectors['description'])[0].text.strip()
+		page = browser.open(url)
+		html = page.read()
+		soup = BeautifulSoup(html, 'lxml')
+
+		title = soup.select(selectors['title'])[0].text
+		print 'Grabbing recipe: ' + title
+
+		try:
+			# Strip removes newline and whitespace characters
+			description = soup.select(selectors['description'])[0].text.strip()
+		except:
+			description = ''
+
+		ingredients = soup.select(selectors['ingredients'])
+		# Grab whole ingredient text with the amount of ingredient ie 400ml water
+		ingredientText = []
+		# Isolate just the ingredient name from the ingredient text
+		ingredientItem = []
+		for ingredient in ingredients:
+			ingredientText.append(ingredient.text.strip())
+			# Attempt to isolate ingredient name
+			if ingredient.select('a'):
+				if ingredient.select('a')[0]:
+					ingredientItem.append(ingredient.select('a')[0].text)
+			else:
+				# if not possible just keep ingredient text
+				ingredientItem.append(ingredient.text.strip())
+		# Remove duplicates
+		ingredientItem = list(set(ingredientItem))
+
+		# Grab cooking method
+		methodList = soup.select(selectors['method'])
+		methodText = []
+		for method in methodList:
+			methodText.append(method.text.strip())
+
+		try:
+			imageTag = soup.select(selectors['image'])
+			if imageTag[0].has_attr('src'):
+				imageSrc = imageTag[0]['src']
+				# imageSrc includes bbc href, we just want to take the image filename
+				filename = imageSrc.split('/')[-1]
+				cwd = os.getcwd()
+				downloadedImgLoc = 'images/' + filename
+				# Download image to images directory
+	        	urllib.urlretrieve(imageSrc, cwd + '/images/' + filename)
+		except:
+			downloadedImgLoc = ''
+
+		try:
+			chefName = soup.select(selectors['chef'])[0].text.strip()
+		except:
+			chefName = ''
+
+		try:
+			prepTime = soup.select(selectors['prepTime'])[0].text.strip()
+		except:
+			prepTime = ''
+
+		try:
+			cookTime = soup.select(selectors['cookTime'])[0].text.strip()
+		except:
+			cookTime = ''
+
+		try:
+			serves = soup.select(selectors['serves'])[0].text.strip()
+		except:
+			serves = ''
+
+
+		ordered = OrderedDict([("title", title), ("description", description), ("cuisine", cuisine), ("image", downloadedImgLoc), ("sourceUrl", url), ("chefName", chefName), ("preparationTime", prepTime), ("cookingTime", cookTime), ("serves", serves), ("ingredientsDesc", ingredientText), ("ingredients", ingredientItem), ("method", methodText)])
+		appendToJsonFile(ordered)
+		appendToXmlFile(ordered)
 	except:
-		description = ''
-
-	ingredients = soup.select(selectors['ingredients'])
-	# Grab whole ingredient text with the amount of ingredient ie 400ml water
-	ingredientText = []
-	# Isolate just the ingredient name from the ingredient text
-	ingredientItem = []
-	for ingredient in ingredients:
-		ingredientText.append(ingredient.text.strip())
-		# Attempt to isolate ingredient name
-		if ingredient.select('a'):
-			if ingredient.select('a')[0]:
-				ingredientItem.append(ingredient.select('a')[0].text)
-		else:
-			# if not possible just keep ingredient text
-			ingredientItem.append(ingredient.text.strip())
-	# Remove duplicates
-	ingredientItem = list(set(ingredientItem))
-
-	# Grab cooking method
-	methodList = soup.select(selectors['method'])
-	methodText = []
-	for method in methodList:
-		methodText.append(method.text.strip())
-
-	try:
-		imageTag = soup.select(selectors['image'])
-		if imageTag[0].has_attr('src'):
-			imageSrc = imageTag[0]['src']
-			# imageSrc includes bbc href, we just want to take the image filename
-			filename = imageSrc.split('/')[-1]
-			cwd = os.getcwd()
-			downloadedImgLoc = 'images/' + filename
-			# Download image to images directory
-        	urllib.urlretrieve(imageSrc, cwd + '/images/' + filename)
-	except:
-		downloadedImgLoc = ''
-
-	try:
-		chefName = soup.select(selectors['chef'])[0].text.strip()
-	except:
-		chefName = ''
-
-	try:
-		prepTime = soup.select(selectors['prepTime'])[0].text.strip()
-	except:
-		prepTime = ''
-
-	try:
-		cookTime = soup.select(selectors['cookTime'])[0].text.strip()
-	except:
-		cookTime = ''
-
-	try:
-		serves = soup.select(selectors['serves'])[0].text.strip()
-	except:
-		serves = ''
-
-
-	ordered = OrderedDict([("title", title), ("description", description), ("cuisine", cuisine), ("image", downloadedImgLoc), ("sourceUrl", url), ("chefName", chefName), ("preparationTime", prepTime), ("cookingTime", cookTime), ("serves", serves), ("ingredientsDesc", ingredientText), ("ingredients", ingredientItem), ("method", methodText)])
-	appendToJsonFile(ordered)
-	appendToXmlFile(ordered)
+		pass
 
 def appendToJsonFile(dictionary):
 	jsonFile.write(json.dumps(dictionary, sort_keys=False, indent=4, separators=(',', ': ')) + ',\n')
@@ -238,6 +241,6 @@ def main():
 	# Loop over all diet pages - diets[0]=x
 		# Get recipe title, match to an already downloaded recipe, add course to details
 		# If no recipe match, go to recipe page and grab details
-		
+
 if __name__ == '__main__':
 	main()
